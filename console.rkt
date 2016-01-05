@@ -4,7 +4,7 @@
 
 (require "mail.rkt")
 
-(define imap-server (make-parameter "imap-mail.outlook.com"))
+(define server (make-parameter "imap-mail.outlook.com"))
 (define username (make-parameter ""))
 (define password (make-parameter ""))
 
@@ -12,20 +12,17 @@
 (command-line
   #:program "rmail"
   #:once-each
-  [("-u" "--username") u
-                      "IMAP Username"
-                      (username u)]
-  [("-p" "--password") p
-                      "IMAP Password"
-                      (password p)]
-  [("-s" "--server") h
+  [("-s" "--server") imap-server
                     "IMAP Server"
-                    (imap-server h)])
+                    (server imap-server)]
+  #:args (imap-username imap-password)
+  (username imap-username)
+  (password imap-password))
 
-(displayln (string-append "-- DEBUG: Connecting to " (imap-server)))
+(displayln (string-append "-- DEBUG: Connecting to " (server)))
 
 (define-values [imap-connection total-messages recent-messages]
-  (rmail-connect imap-server username password))
+  (rmail-connect server username password))
 
 (define-values [mailboxes]
   (rmail-mailboxes imap-connection))
