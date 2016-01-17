@@ -19,7 +19,7 @@
 
 (define (rmail-connect imap-server username password)
   ;(displayln (string-append (imap-server) (username) (password)))
-  (imap-connect (imap-server) (username) (password) mailbox #:tls? use-ssl))
+  (imap-connect imap-server username password mailbox #:tls? use-ssl))
 
 ; This should be included in the above struct
 (define (rmail-mailboxes imap-connection)

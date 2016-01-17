@@ -4,11 +4,58 @@
 
 (require "mail.rkt")
 
+
+(struct rmail
+        (connection total-messages recent-messages))
+
+
+(define (make-rmail server username password)
+  (let-values ([(imap-connection total-messages recent-messages)
+                (rmail-connect server username password)])
+              (rmail imap-connection total-messages recent-messages)))
+
+(define (disconnect-and-exit imap)
+  (rmail-disconnect (rmail-connection imap))
+  (exit))
+
+;
+; Display functions
+;
+(define (display-message-list imap)
+    (let ([imap-connection (rmail-connection imap)]
+          [total-messages (rmail-total-messages imap)])
+      (for ([header (headers imap-connection total-messages)] [i (in-range total-messages)])
+           (display (+ 1 i))
+           (display " - ")
+           (displayln (get-subject (second header))))))
+
+(define (display-help)
+  (displayln "l - List messages")
+  (displayln "# - Read message #")
+  (displayln "q - Quit"))
+
+(define (display-mailboxes imap)
+  (display "Mailboxes: ")
+  (displayln (rmail-mailboxes (rmail-connection imap))))
+
+(define (display-message idx imap)
+  (let ([total-messages (rmail-total-messages imap)]
+        [imap-connection (rmail-connection imap)])
+    (define (message-out-of-bounds)
+      (displayln "Message index out of bounds"))
+    (cond
+      [(<= idx 0) (message-out-of-bounds)]
+      [(>= total-messages idx)
+         (displayln
+           (caar (get-imap-message imap-connection (list idx))))]
+      [else (message-out-of-bounds)])))
+
+;
+; Command Line Arguments
+;
 (define server (make-parameter "imap-mail.outlook.com"))
 (define username (make-parameter ""))
 (define password (make-parameter ""))
-
-; Allow overriding of username, password, server
 (command-line
   #:program "rmail"
   #:once-each
@@ -19,64 +66,34 @@
   (username imap-username)
   (password imap-password))
 
-(define (display-message-list)
-    (for ([header (headers imap-connection total-messages)] [i (in-range total-messages)])
-         (display (+ 1 i))
-         (display " - ")
-         (displayln (get-subject (second header)))))
-
-(define (display-help)
-  (displayln "l - List messages")
-  (displayln "# - Read message #")
-  (displayln "q - Quit"))
-
-(define (display-mailboxes)
-  (display "Mailboxes: ")
-  (displayln mailboxes))
-
-(define (display-message idx)
-  (define (message-out-of-bounds)
-    (displayln "Message index out of bounds"))
-  (cond
-    [(<= idx 0) (message-out-of-bounds)]
-    [(>= total-messages idx)
-       (displayln
-         (caar (get-imap-message imap-connection (list idx))))]
-    [else (message-out-of-bounds)]))
-
-(define (disconnect-and-exit)
-  (rmail-disconnect imap-connection)
-  (exit))
-
-(define (next-input port)
+;
+; REPL Menu
+;
+(define (next-input port current-imap)
   (display "> ")
   (let ([s (string-downcase (read-line port))])
     (cond
-      [(string=? s "m") (display-mailboxes)]
-      [(string=? s "l") (display-message-list)]
+      [(string=? s "m") (display-mailboxes current-imap)]
+      [(string=? s "l") (display-message-list current-imap)]
       [(string=? s "?") (display-help)]
-      [(string=? s "q") (disconnect-and-exit)]
-      [(number? (string->number s)) (display-message (string->number s))]
+      [(string=? s "q") (disconnect-and-exit current-imap)]
+      [(number? (string->number s)) (display-message (string->number s) current-imap)]
       [else (displayln "Unrecognized input")])
-    (next-input port)))
+    (next-input port current-imap)))
 
 ;
 ; Debug Output
 ;
 (displayln (string-append "# Connecting to " (server) " ..."))
 
-(define-values [imap-connection total-messages recent-messages]
-  (rmail-connect server username password))
+;
+; Calling make-rmail starts the IMAP connection
+;
+(define current-imap (make-rmail (server) (username) (password)))
 
 (displayln "# Connection established.")
 
-(define-values [mailboxes]
-  (rmail-mailboxes imap-connection))
-
 ;
-; Mail REPL
+; Start REPL Menu
 ;
-(next-input (current-input-port))
-
-;(displayln "-- DEBUG: Disconnected")
-;(rmail-disconnect imap-connection)
+(next-input (current-input-port) current-imap)
