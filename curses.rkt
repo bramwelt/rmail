@@ -1,22 +1,8 @@
 #lang racket/base
-(require ffi/unsafe
-         ffi/unsafe/define)
- 
-(define-ffi-definer define-curses (ffi-lib "libncurses" '("5" #f)))
 
-(define _WINDOW-pointer (_cpointer 'WINDOW))
- 
-;
-; Ncurses Failure Check
-;
-; Most Ncurses functions will return an integer error code. If the
-; integer is non-zero an error has occured. For function that take
-; multiple arguments (window, pad, coordinates, etc) this integer can
-; represent an error in any of the arguments.
-(define (check v who)
-    (unless (zero? v)
-          (error who "failed: ~a" v)))
- 
+(require "lib/curses.rkt")
+(require "mail.rkt")
+
 ;
 ; To get character-at-a-time input without echoing (most
 ; interactive, screen oriented programs want this), the following
@@ -30,39 +16,38 @@
 ;   intrflush(stdscr, FALSE);
 ;   keypad(stdscr, TRUE);
 
+;; Bounded cursor rows
+(define (inc-row! row)
+  (cond
+    [(>= row 10) 10]
+    [else (+ row 1)]))
 
-(define-curses initscr (_fun -> _WINDOW-pointer))
-(define-curses waddstr (_fun _WINDOW-pointer _string -> (r : _int)
-                                                     -> (check r 'waddstr)))
-(define-curses wrefresh (_fun _WINDOW-pointer -> (r : _int)
-                                              -> (check r 'wrefresh)))
-(define-curses wgetch (_fun _WINDOW-pointer ->  _int))
-(define-curses endwin (_fun -> (r : _int)
-                            -> (check r 'endwin)))
-
-(define-curses cbreak (_fun -> (r : _int)
-                             -> (check r 'cbreak)))
-(define-curses noecho (_fun -> (r : _int)
-                            -> (check r 'noecho)))
-(define-curses echo (_fun -> (r : _int)
-                          -> (check r 'echo)))
+(define (dec-row! row)
+  (cond
+    [(<= row 1) 1]
+    [else (- row 1)]))
+;
 
 
 (define win (initscr))
+(define list-item 1)
 
 (void (cbreak))
 (void (noecho))
 (void (waddstr win "Hello\n"))
 
-(define (next-input win)
+(define (next-input win list-item)
   (let ([c (integer->char (wgetch win))])
     (cond
         [(char=? c #\q) (void (endwin)) (exit)]
+        [(char=? c #\k) (set! list-item (inc-row! list-item))]
+        [(char=? c #\j) (set! list-item (dec-row! list-item))]
+        [(char=? c #\p) (waddstr win (number->string list-item))]
         [else (void (waddstr win (string c)))])
     (void (wrefresh win))
-    (next-input win)))
+    (next-input win list-item)))
 
-(next-input win)
+(next-input win list-item)
 
 ; (sleep 1)
 ; (void (endwin))
