@@ -17,6 +17,13 @@
 (define use-ssl #t )
 (imap-port-number 993)
 
+(define server (make-parameter "imap-mail.outlook.com"))
+(define username (make-parameter ""))
+(define password (make-parameter ""))
+
+(struct rmail
+        (connection total-messages recent-messages))
+
 (define (rmail-connect imap-server username password)
   ;(displayln (string-append (imap-server) (username) (password)))
   (imap-connect imap-server username password mailbox #:tls? use-ssl))
@@ -48,3 +55,12 @@
 
 (define (rmail-disconnect imap-connection)
   (imap-disconnect imap-connection))
+
+(define (make-rmail server username password)
+  (let-values ([(imap-connection total-messages recent-messages)
+                (rmail-connect server username password)])
+              (rmail imap-connection total-messages recent-messages)))
+
+(define (disconnect-and-exit imap)
+  (rmail-disconnect (rmail-connection imap))
+  (exit))

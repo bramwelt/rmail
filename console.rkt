@@ -4,20 +4,6 @@
 
 (require "mail.rkt")
 
-
-(struct rmail
-        (connection total-messages recent-messages))
-
-
-(define (make-rmail server username password)
-  (let-values ([(imap-connection total-messages recent-messages)
-                (rmail-connect server username password)])
-              (rmail imap-connection total-messages recent-messages)))
-
-(define (disconnect-and-exit imap)
-  (rmail-disconnect (rmail-connection imap))
-  (exit))
-
 ;
 ; Display functions
 ;
@@ -53,9 +39,6 @@
 ;
 ; Command Line Arguments
 ;
-(define server (make-parameter "imap-mail.outlook.com"))
-(define username (make-parameter ""))
-(define password (make-parameter ""))
 (command-line
   #:program "rmail"
   #:once-each
