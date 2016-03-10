@@ -17,6 +17,7 @@
 ; represent an error in any of the arguments.
 (define (check v who)
     (unless (zero? v)
+          (endwin)
           (error who "failed: ~a" v)))
 
 ; ncurses.h C Defines
@@ -29,7 +30,11 @@
 (define COLOR_CYAN 6)
 (define COLOR_WHITE 7)
 
+(define-curses COLS _int)
+
 (define _WINDOW-pointer (_cpointer 'WINDOW))
+(define _chtype _ulong)
+(define _attr _chtype)
 
 (define-curses initscr (_fun -> _WINDOW-pointer))
 
@@ -50,9 +55,28 @@
 
 (define-curses COLOR_PAIR (_fun _int ->  _int))
 
+(define-curses curs_set (_fun _int -> _int))
+
 ; Window Functions
 (define-curses waddstr (_fun _WINDOW-pointer _string -> (r : _int)
                                                      -> (check r 'waddstr)))
+
+(define-curses mvwaddstr (_fun _WINDOW-pointer _int _int _string -> (r : _int)
+                                                                 -> (check r 'mvwaddstr)))
+
+(define-curses mvwchgat (_fun _WINDOW-pointer
+                              (y : _int)
+                              (x : _int)
+                              (n : _int)
+                              (attr : _attr)
+                              (color : _short) -> (r : _int)
+                                               -> (check r 'mvwchgat)))
+
+(define-curses wchgat (_fun _WINDOW-pointer
+                            (n : _int)
+                            (attr : _attr)
+                            (color : _short) -> (r : _int)
+                                             -> (check r 'mvwchgat)))
 
 (define-curses waddnstr (_fun _WINDOW-pointer _string _int -> (r : _int)
                                                            -> (check r 'waddnstr)))
@@ -62,11 +86,23 @@
 
 (define-curses wgetch (_fun _WINDOW-pointer ->  _int))
 
-(define-curses wattron (_fun _WINDOW-pointer _int -> (r : _int)
+(define-curses wmove (_fun _WINDOW-pointer _int _int -> _int))
+
+(define-curses wattron (_fun _WINDOW-pointer _attr -> (r : _int)
                                                   -> (check r 'wattron)))
 
 (define-curses wattroff (_fun _WINDOW-pointer _int -> (r : _int)
                                                    -> (check r 'wattroff)))
+(define-curses wborder (_fun _WINDOW-pointer
+                             _chtype
+                             _chtype
+                             _chtype
+                             _chtype
+                             _chtype
+                             _chtype
+                             _chtype
+                             _chtype  -> (r : _int)
+                                      -> (check r 'wborder)))
 
 (define-curses endwin (_fun -> (r : _int)
                             -> (check r 'endwin)))

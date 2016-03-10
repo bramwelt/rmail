@@ -24,7 +24,7 @@
   (username imap-username)
   (password imap-password))
 
-(define list-item 1 )
+(define list-item 1)
 (define list-max 10)
 
 ;
@@ -51,26 +51,41 @@
     [(<= row 1) 1]
     [else (- row 1)]))
 
-(define win (initscr))
-
-(void (cbreak))
-(void (noecho))
-(void (start_color))
-
-(define (next-input win list-item)
-  (let ([c (integer->char (wgetch win))])
-    (cond
-        [(char=? c #\q) (void (endwin)) (exit)]
-        [(char=? c #\k) (set! list-item (inc-row! list-item))]
-        [(char=? c #\j) (set! list-item (dec-row! list-item))]
-        [(char=? c #\p) (waddstr win (number->string list-item))])
-    (void (wrefresh win))
-    (next-input win list-item)))
+; Remove highlighting, move the cursor and highlight the next row.
+(define (highlight-row row)
+    (wchgat win -1 0 (COLOR_PAIR 0))
+    (wmove win row 0)
+    (wchgat win -1 0 (COLOR_PAIR 1)))
 
 ; Setup connection
 (define current-imap (make-rmail (server) (username) (password)))
 (set! list-max (rmail-total-messages current-imap))
 
+; Initialize NCurses
+(define win (initscr))
+
+(void (cbreak))
+(void (noecho))
+(void (start_color))
+(void (curs_set 0))
+
+(init_pair 1 COLOR_GREEN COLOR_WHITE)
+
+(define (next-input win list-item)
+  (let ([c (integer->char (wgetch win))])
+    (cond
+        [(char=? c #\q) (void (endwin)) (exit)]
+        [(char=? c #\k) (set! list-item (dec-row! list-item))]
+        [(char=? c #\j) (set! list-item (inc-row! list-item))])
+    (highlight-row (- list-item 1))
+    (void (wrefresh win))
+    (next-input win list-item)))
+
+; Writeout Messages
 (display-message-list current-imap win)
+; Reset the cursor
+(void (wmove win 0 0))
+; Highlight the first line
+(void (wchgat win -1 0 (COLOR_PAIR 1)))
 
 (next-input win list-item)
