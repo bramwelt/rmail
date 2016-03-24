@@ -1,5 +1,7 @@
 #lang racket
 
+(require racket/format)
+
 (require "lib/curses.rkt")
 (require "mail.rkt")
 
@@ -9,7 +11,11 @@
       (for ([header (headers imap-connection total-messages)] [i (in-range total-messages)])
            (waddstr win (number->string (+ 1 i)))
            (waddstr win " - ")
-           (waddstr win (get-subject (second header)))
+           (waddstr win (~a (get-subject (second header)) #:max-width 20))
+           (waddstr win " - ")
+           (waddstr win (get-from (second header)))
+           (waddstr win " - ")
+           (waddstr win (get-date (second header)))
            (waddstr win "\n"))))
 
 ; Command Line Arguments
@@ -68,6 +74,7 @@
 (void (noecho))
 (void (start_color))
 (void (curs_set 0))
+(void (scrollok win 1))
 
 (init_pair 1 COLOR_GREEN COLOR_WHITE)
 
