@@ -49,6 +49,12 @@
 (define (get-subject header)
   (extract-field #"SUBJECT" header))
 
+(define (get-date header)
+  (extract-field #"DATE" header))
+
+(define (get-from header)
+  (extract-field #"FROM" header))
+
 (define (get-imap-message imap-connection index)
   (imap-get-messages
     imap-connection index '(body)))
