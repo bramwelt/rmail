@@ -41,6 +41,9 @@
 (define-curses cbreak (_fun -> (r : _int)
                              -> (check r 'cbreak)))
 
+(define-curses scrollok (_fun _WINDOW-pointer _bool -> (r : _int)
+                                                    -> (check r 'scrollok)))
+
 (define-curses noecho (_fun -> (r : _int)
                             -> (check r 'noecho)))
 
