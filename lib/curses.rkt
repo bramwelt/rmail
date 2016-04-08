@@ -44,6 +44,12 @@
 (define-curses scrollok (_fun _WINDOW-pointer _bool -> (r : _int)
                                                     -> (check r 'scrollok)))
 
+(define-curses scroll (_fun _WINDOW-pointer -> (r : _int)
+                                            -> (check r 'scroll)))
+
+(define-curses scrl (_fun _int -> (r : _int)
+                               -> (check r 'scrl)))
+
 (define-curses noecho (_fun -> (r : _int)
                             -> (check r 'noecho)))
 
@@ -80,6 +86,9 @@
                             (attr : _attr)
                             (color : _short) -> (r : _int)
                                              -> (check r 'mvwchgat)))
+
+(define-curses wscrl (_fun _WINDOW-pointer _int -> (r : _int)
+                                                -> (check r 'wscrl)))
 
 (define-curses waddnstr (_fun _WINDOW-pointer _string _int -> (r : _int)
                                                            -> (check r 'waddnstr)))
