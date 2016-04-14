@@ -30,7 +30,25 @@
 (define COLOR_CYAN 6)
 (define COLOR_WHITE 7)
 
-(define-curses COLS _int)
+(define A_NORMAL 0)
+(define A_ATTRIBUTES -256)
+(define A_CHARTEXT 255)
+(define A_COLOR 65280)
+(define A_STANDOUT 65536)
+(define A_UNDERLINE 131072)
+(define A_REVERSE 262144)
+(define A_BLINK 524288)
+(define A_DIM 1048576)
+(define A_BOLD 2097152)
+(define A_ALTCHARSET 4194304)
+(define A_INVIS 8388608)
+(define A_PROTECT 16777216)
+(define A_HORIZONTAL 33554432)
+(define A_LEFT 67108864)
+(define A_LOW 134217728)
+(define A_RIGHT 268435456)
+(define A_TOP 536870912)
+(define A_VERTICAL 1073741824)
 
 (define _WINDOW-pointer (_cpointer 'WINDOW))
 (define _chtype _ulong)
@@ -100,7 +118,7 @@
 
 (define-curses wmove (_fun _WINDOW-pointer _int _int -> _int))
 
-(define-curses wattron (_fun _WINDOW-pointer _attr -> (r : _int)
+(define-curses wattron (_fun _WINDOW-pointer _int -> (r : _int)
                                                   -> (check r 'wattron)))
 
 (define-curses wattroff (_fun _WINDOW-pointer _int -> (r : _int)
